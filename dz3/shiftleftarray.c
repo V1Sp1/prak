@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-int gcd(int a, int b) /*optimize!*/
+int gcd(int a, int b)
 {
     int r;
     while(b != 0){
