@@ -1,6 +1,6 @@
 #include "6p42.h"
 
-void queue_put(queue *pqu, double data)
+void queue_put(queue *pqu, void *data)
 {
     queue lst = (queue)malloc(sizeof(inode));
     lst -> next = NULL;
@@ -16,19 +16,12 @@ void queue_put(queue *pqu, double data)
 }
 
 /*if *pqu eq NULL than mustn't work...*/
-double queue_get(queue *pqu)
+void *queue_get(queue *pqu)
 {
     queue fst = *pqu;
-    double data;
+    void *data;
     *pqu = (*pqu) -> next;
     data = fst -> data;
     free(fst);
     return data;
-}
-
-void queue_throw(queue qu, void (*fp)(double))
-{
-    for(; qu != NULL; qu = qu -> next){
-        fp(qu -> data);
-    }
 }

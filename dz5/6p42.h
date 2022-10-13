@@ -3,19 +3,17 @@
 #include <stdlib.h>
 
 typedef struct inode {
-    double data;
+    void *data;
     struct inode *next;
 } inode;
 
 typedef inode *queue;
 
-void queue_put(queue *pqu, double data);
+void queue_put(queue *pqu, void *data);
 
 /*if *pqu eq NULL than mustn't work*/
-double queue_get(queue *pqu);
+void *queue_get(queue *pqu);
 
 void queue_print(queue qu);
-
-void queue_throw(queue qu, void (*fp)(double));
 
 #endif /* PRAC6P42_H */
