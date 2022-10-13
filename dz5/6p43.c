@@ -8,9 +8,11 @@ void stack_push(stack *pst, void *data)
     (*pst) = fst;
 }
 
-/*if *pst eq NULL than mustn't work...*/
 void *stack_pop(stack *pst)
 {
+    if(*pst == NULL){
+        return NULL;
+    }
     stack fst = *pst;
     void *data = fst -> data;
     *pst = (*pst) -> next;

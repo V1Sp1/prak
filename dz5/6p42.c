@@ -15,9 +15,11 @@ void queue_put(queue *pqu, void *data)
     (*pqu) -> next = lst;
 }
 
-/*if *pqu eq NULL than mustn't work...*/
 void *queue_get(queue *pqu)
 {
+    if(*pqu == NULL){
+        return NULL;
+    }
     queue fst = *pqu;
     void *data = fst -> data;
     *pqu = (*pqu) -> next;
