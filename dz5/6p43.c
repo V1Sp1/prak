@@ -26,8 +26,8 @@ void *stack_pop(stack *pst)
 void stack_free(stack *pst)
 {
     stack st;
-    for(st = *pst; st != NULL; st = *pst, *pst = st -> next){
+    for(st = *pst; st != NULL; st = *pst){
+        *pst = st -> next
         free(st);
     }
-    *pst = NULL;
 }

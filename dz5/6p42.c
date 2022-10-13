@@ -2,10 +2,11 @@
 
 void queue_put(queue *pqu, void *data)
 {
+    queue lst;
     if(data == NULL){
         return;
     }
-    queue lst = (queue)malloc(sizeof(inode));
+    lst = (queue)malloc(sizeof(inode));
     lst -> next = NULL;
     lst -> data = data;
     if(*pqu == NULL){
@@ -20,11 +21,12 @@ void queue_put(queue *pqu, void *data)
 
 void *queue_get(queue *pqu)
 {
+    queue fst = *pqu;
+    void *data;
     if(*pqu == NULL){
         return NULL;
     }
-    queue fst = *pqu;
-    void *data = fst -> data;
+    data = fst -> data;
     *pqu = (*pqu) -> next;
     free(fst);
     return data;
@@ -33,8 +35,8 @@ void *queue_get(queue *pqu)
 void queue_free(queue *pqu)
 {
     queue qu;
-    for(qu = *pqu; qu != NULL; qu = *pqu, *pqu = qu -> next){
+    for(qu = *pqu; qu != NULL; qu = *pqu){
+        *pqu = qu -> next;
         free(qu);
     }
-    *pqu = NULL;
 }
