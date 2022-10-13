@@ -19,9 +19,8 @@ void queue_put(queue *pqu, void *data)
 void *queue_get(queue *pqu)
 {
     queue fst = *pqu;
-    void *data;
+    void *data = fst -> data;
     *pqu = (*pqu) -> next;
-    data = fst -> data;
     free(fst);
     return data;
 }
