@@ -2,6 +2,9 @@
 
 void stack_push(stack *pst, void *data)
 {
+    if(data == NULL){
+        return;
+    }
     stack fst = (stack)malloc(sizeof(inode));
     fst -> next = *pst;
     fst -> data = data;

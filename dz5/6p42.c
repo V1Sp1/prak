@@ -2,6 +2,9 @@
 
 void queue_put(queue *pqu, void *data)
 {
+    if(data == NULL){
+        return;
+    }
     queue lst = (queue)malloc(sizeof(inode));
     lst -> next = NULL;
     lst -> data = data;
