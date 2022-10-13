@@ -29,3 +29,12 @@ void *queue_get(queue *pqu)
     free(fst);
     return data;
 }
+
+void queue_free(queue *pqu)
+{
+    queue qu;
+    for(qu = *pqu; qu != NULL; qu = *pqu, *pqu = qu -> next){
+        free(qu);
+    }
+    *pqu = NULL;
+}

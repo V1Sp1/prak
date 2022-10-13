@@ -11,7 +11,8 @@ typedef inode *stack;
 
 void stack_push(stack *pst, void *data);
 
-/*if *pst eq NULL than mustn't work*/
 void *stack_pop(stack *pst);
+
+void stack_free(stack *pst);
 
 #endif /* PRAC6P43_H */

@@ -22,3 +22,12 @@ void *stack_pop(stack *pst)
     free(fst);
     return data;
 }
+
+void stack_free(stack *pst)
+{
+    stack st;
+    for(st = *pst; st != NULL; st = *pst, *pst = st -> next){
+        free(st);
+    }
+    *pst = NULL;
+}
