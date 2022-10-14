@@ -11,12 +11,12 @@ typedef struct tnode {
 
 typedef tnode *tree;
 
-int tree_count_n_level(tree tr, int n)
+int tree_count_n_level(tree tr, int n);
 
-void tree_print(tree tr)
+void tree_print(tree tr);
 
-void tree_add(tree *ptr, int data)
+void tree_add(tree *ptr, int data);
 
-void tree_free(tree *ptr)
+void tree_free(tree *ptr);
 
 #endif /* PRAC6P45E_H */

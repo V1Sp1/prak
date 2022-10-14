@@ -19,14 +19,14 @@ tree tree_next_level(queue *qu, tree trlst)
             trnew = tmp -> right;
             queue_put(qu, trnew); 
         }
-    } while((*qu != NULL) && ((tree)((*qu) -> data) == trlst));
+    } while((*qu != NULL) && (tmp != trlst));
     return trnew;
 }
 
 int queue_lenght(queue qu)
 {
-    int i = 0;
-    for(; qu != NULL; qu = qu -> next){
+    int i;
+    for(i = 0; qu != NULL; qu = qu -> next){
         ++i;
     }
     return i;
@@ -40,9 +40,6 @@ int tree_count_n_level(tree tr, int n)
     queue_put(&qu, tr);
     for(i = 0; (trlst != NULL) && (i < n); ++i){
         trlst = tree_next_level(&qu, trlst);
-    }
-    if(i == n){
-        return 0;
     }
     i = queue_lenght(qu);
     queue_free(&qu);
