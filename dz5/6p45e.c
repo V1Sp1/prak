@@ -1,10 +1,11 @@
 #include "6p45e.h"
 
-tree tree_next_level(queue *qu, tree trlst)
+void tree_next_level(queue *qu, tree *trlst)
 {
     tree tmp, trnew = NULL;
     if(*qu == NULL){
-        return trnew;
+        *trlst = trnew;
+        return;
     }
     do {
         tmp = (tree)queue_get(qu);
@@ -19,8 +20,8 @@ tree tree_next_level(queue *qu, tree trlst)
             trnew = tmp -> right;
             queue_put(qu, trnew); 
         }
-    } while((*qu != NULL) && (tmp != trlst));
-    return trnew;
+    } while((*qu != NULL) && (tmp != *trlst));
+    *trlst = trnew;
 }
 
 int queue_lenght(queue qu)
@@ -39,7 +40,7 @@ int tree_count_n_level(tree tr, int n)
     queue qu = NULL;
     queue_put(&qu, tr);
     for(i = 0; (trlst != NULL) && (i < n); ++i){
-        trlst = tree_next_level(&qu, trlst);
+        tree_next_level(&qu, &trlst);
     }
     i = queue_lenght(qu);
     queue_free(&qu);
@@ -64,7 +65,7 @@ void tree_print(tree tr)
     queue_put(&qu, tr);
     queue_print(qu);
     do {
-        trlst = tree_next_level(&qu, trlst);
+        tree_next_level(&qu, &trlst);
         if(qu != NULL){
             queue_print(qu);
         }
@@ -116,7 +117,7 @@ int main(void)
     tree_add(&tr, 2);
     tree_add(&tr, 6);
     tree_print(tr);
-    printf("On 3 level: %d\n", tree_count_n_level(tr, 3));
+    printf("On 4 level: %d\n", tree_count_n_level(tr, 4));
     tree_free(&tr);
     return 0;
 }
