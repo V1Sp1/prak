@@ -59,13 +59,3 @@ int main(int argc, char *argv[])
     printf("maxpath: %s\n", maxp);
     return 0;
 }
-
-/*
-S_ISREG(st_mode) Регулярный файл
-S_ISDIR(st_mode) Каталог
-S_ISCHR(st_mode) Специальный файл символьного устройства
-S_ISBLK(st_mode) Специальный файл блочного устройства
-S_ISFIFO(st_mode) Канал (именованный или неименованный)
-S_ISLNK(st_mode) Символическая ссылка
-S_ISSOCK(st_mode) Сокет
-*/
