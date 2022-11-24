@@ -6,11 +6,32 @@
 static char *buf;       /* word buffer */
 static int curbuf;      /* index symbol in buf */
 static int sizebuf;     /* size of buf */
-static char str[N];     /* symbol buffer */
-static int curstr;      /* index symbol in str */
-static int sizestr;     /* size of str */
 
 int getsym(void){
+    static char str[N];     /* symbol buffer */
+    static int curstr = 0;      /* index symbol in str */
+    static int sizestr = 0;     /* size of str */
+
+#if USE_FSCANF_IN_GETSYM
+#define N_TO_STR2(X) #X
+#define N_TO_STR(X) N_TO_STR2(X)
+    if(curstr == sizebuf){
+        curstr = 0;
+        sizestr = 0;
+        if(fscanf(stdin, "%" N_TO_STR(N) "[^\n]%n", str, &sizestr) == EOF){
+            return EOF;
+        }
+        if(sizestr != 10){
+            str[sizestr] = '\n';
+            fscanf(stdin, "%*c");
+            ++sizestr;
+        }
+    }
+    ++curstr;
+    return str[curstr - 1];
+#undef N_TO_STR
+#undef N_TO_STR2
+#else
     ++curstr;
     if(curstr >= sizestr){
         curstr = 0;
@@ -20,13 +41,22 @@ int getsym(void){
         return str[curstr];
     }
     return EOF;
-    /*TODO: error cheching*/
+#endif
 }
 
-void nullbuf(void){
+void nullbuf(void)
+{
     buf = NULL;
     sizebuf = 0;
     curbuf = 0;
+}
+
+void clearbuf(void)
+{
+    if(buf != NULL){
+        free(buf);
+    }
+    nullbuf();
 }
 
 void addsym(int c){
@@ -75,15 +105,4 @@ void addword(struct listw *li){
     }
     li->list[li->curlist] = buf;
     li->curlist++;
-}
-
-void printlist(struct listw *li){
-    int i;
-    if(li->list == NULL){
-        return;
-    }
-    for(i = 0; i < li->sizelist - 1; ++i){
-        printf("%s ", li->list[i]);
-    }
-    putchar('\n');
 }

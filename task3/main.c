@@ -64,6 +64,17 @@ void insertion_sort(struct listw *li)
     }
 }
 
+void printlist(struct listw *li){
+    int i;
+    if(li->list == NULL){
+        return;
+    }
+    for(i = 0; i < li->sizelist - 1; ++i){
+        printf("%s ", li->list[i]);
+    }
+    putchar('\n');
+}
+
 void lex_step(struct lex *le){
     switch(le->state){
         case lex_start:

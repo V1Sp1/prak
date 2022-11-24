@@ -23,6 +23,9 @@ int getsym(void);
 /*null word buffer*/
 void nullbuf(void);
 
+/*clear word buffer*/
+void clearbuf(void);
+
 /*add symbol to word buffer*/
 void addsym(int c);
 
@@ -37,8 +40,5 @@ void termlist(struct listw *li);
 
 /*add word from word buffer to list of words*/
 void addword(struct listw *li);
-
-/*print words in list*/
-void printlist(struct listw *li);
 
 #endif /* LEX_H_RSHELL */
