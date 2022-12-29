@@ -1,11 +1,11 @@
 CC = gcc
-CFLAGS = -Wall -g -lm
+CFLAGS = -Wall -g
 VFLAGS1 = --leak-check=full --child-silent-after-fork=yes
 VFLAGS2 = --leak-check=full --show-leak-kinds=all
 PROG = shell
 
 $(PROG): main.c error.o darr.o lex.o tree.o exec.o intcmds.o
-	$(CC) $(CFLAGS) main.c error.o darr.o lex.o tree.o exec.o intcmds.o -o $@
+	$(CC) $(CFLAGS) main.c error.o darr.o lex.o tree.o exec.o intcmds.o -lm -o $@
 
 error.o: error.c error.h
 	$(CC) $(CFLAGS) -c $< -o $@

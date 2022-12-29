@@ -9,7 +9,7 @@
 #include "tree.h"
 #include "exec.h"
 
-void inv()
+void inv(void)
 {
     printf("%s", "\x1b[36m");
     char s[100];
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]){
                 } else if(t == 0){
                     /*kill current group???*/
                 }
-            } else {
+            } else if(t == 0){
                 putchar('\n');
                 printstatus();
             }

@@ -134,7 +134,7 @@ int build_tree(tree *tr, char **li)
     int tmp;
     if(plex == NULL){
         plex = li;
-        if(plex == NULL){
+        if((plex == NULL) || (*plex == NULL)){
             return -1;
         }
     }
