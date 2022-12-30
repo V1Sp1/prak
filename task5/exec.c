@@ -53,12 +53,11 @@ int rmelem_bckgrnd(bckgrnd *bc, int pid)
     if(*bc == NULL){
         return 0;
     }
-    if((*bc)->next == NULL){
-        if((*bc)->pid == pid){
-            free(*bc);
-            *bc = NULL;
-            return 1;
-        }
+    if((*bc)->pid == pid){
+        tmp = *bc;
+        (*bc) = tmp->next;
+        free(tmp);
+        return 1;
     }
     for(; (*bc)->next != NULL; bc = &((*bc)->next)){
         if((*bc)->next->pid == pid){
