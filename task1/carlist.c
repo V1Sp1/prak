@@ -52,20 +52,21 @@ static void carlist_search(node *left, node *right, char *str, node **nleft, nod
  * returned NULL if don't found
  * else returned first met*/
 static node *
-carlist_search_seller(node *left, node *right, unsigned long ip, unsigned short port)
+carlist_search_seller(node *left, node *right, int fd)
 {
     if((left == NULL) || (right == NULL)) {
         return NULL;
     }
     for(; left != right; left = left->next) {
-        if((left.seller_ip == ip) && (left.seller_port == port)) {
+        if(left.seller_fd == fd) {
             return left;
         }
     }
     return NULL;
 }
 
-node *node_init(char *brand, int num, unsigned long seller_ip, unsigned short seller_port)
+node *node_init(char *brand, int num,
+        unsigned long seller_ip, unsigned short seller_port, int seller_fd)
 {
     char *pc;
     node *tmp = malloc(sizeof(node));
@@ -73,6 +74,7 @@ node *node_init(char *brand, int num, unsigned long seller_ip, unsigned short se
     tmp.num = num;
     tmp.seller_ip = seller_ip;
     tmp.seller_port = seller_port;
+    tmp.seller_fd;
     tmp.prev = NULL;
     tmp.next = NULL;
     return tmp;
@@ -125,7 +127,7 @@ void carlist_addcar(carlist cr, node *elem)
         carlist_add_right(cr, nleft, elem);
         return;
     }
-    tmp = carlist_search_seller(nleft, nright, elem->seller_ip, elem->seller_port);
+    tmp = carlist_search_seller(nleft, nright, elem->seller_fd);
     if(tmp == NULL){
         carlist_add_left(cr, nleft, elem);
     } else {

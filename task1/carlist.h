@@ -6,6 +6,7 @@ typedef struct node {
     int num;
     unsigned long seller_ip;
     unsigned short seller_port;
+    int seller_fd;
     struct node *prev, *next;
 } node;
 
