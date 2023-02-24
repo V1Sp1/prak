@@ -10,18 +10,19 @@ typedef struct node {
     struct node *prev, *next;
 } node;
 
-typedef node *carlist;
-
-node *node_init(char *brand, int num, unsigned long seller_ip, unsigned short seller_port, int seller_fd);
+node *node_init(const char *brand, int num, unsigned long seller_ip, unsigned short seller_port, int seller_fd);
 
 void node_free(node *current);
 
-void carlist_addcar(carlist cr, node *elem);
+/*elem may be freed*/
+void carlist_addcar(node *carlist, node *elem);
 
 node *carlist_sell_car(node *current, char *brand);
 
 /*free carlist*/
-void carlist_free(carlist cl);
+void carlist_free(node *carlist);
+
+void carlist_print(node carlist);
 
 /*save curlist to file*/
 /*carlist_save(carlist cl, int fd);*/
