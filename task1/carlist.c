@@ -55,7 +55,7 @@ static void carlist_search(node *left, node *right, char *str, node **nleft, nod
     }
 }
 
-/* search seller from left to right if seler_fd is in order
+/* search seller from left to right TODO:add order to select_fd
  * returned NULL if don't found
  * else returned first met*/
 static node *carlist_search_seller(node *left, node *right, int fd)
