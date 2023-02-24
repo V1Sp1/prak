@@ -12,7 +12,9 @@ typedef struct node {
 
 typedef node *carlist;
 
-node *node_init(char *brand, int num, unsigned long seller_ip, unsigned short seller_port);
+node *node_init(char *brand, int num, unsigned long seller_ip, unsigned short seller_port, int seller_fd);
+
+void node_free(node *current);
 
 void carlist_addcar(carlist cr, node *elem);
 
