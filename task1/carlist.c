@@ -55,22 +55,6 @@ static void carlist_search(node *left, node *right, char *str, node **nleft, nod
     }
 }
 
-/* search seller from left to right TODO:add order to select_fd
- * returned NULL if don't found
- * else returned first met*/
-static node *carlist_search_seller(node *left, node *right, int fd)
-{
-    if((left == NULL) || (right == NULL)) {
-        return NULL;
-    }
-    for(; left != right->next; left = left->next) {
-        if(left->seller_fd == fd) {
-            return left;
-        }
-    }
-    return NULL;
-}
-
 node *node_init(const char *brand, int num, unsigned long seller_ip, unsigned short seller_port, int seller_fd)
 {
     node *tmp = malloc(sizeof(node));
@@ -98,6 +82,8 @@ void node_free(node *current)
     free(current);
 }
 
+/* add car to the left of current
+ * if current is NULL add to the left end*/
 void carlist_add_left(node *carlist, node *current, node *elem)
 {
     if(current == NULL) {
@@ -119,7 +105,9 @@ void carlist_add_left(node *carlist, node *current, node *elem)
     current->prev = elem;
 }
 
-void carlist_add_right(node *carlist, node *current, node *elem)
+/* add car to the right of current
+ * if current is NULL add to the right end*/
+static void carlist_add_right(node *carlist, node *current, node *elem)
 {
     if(current == NULL) {
         current = carlist->next;
@@ -142,7 +130,7 @@ void carlist_add_right(node *carlist, node *current, node *elem)
 
 void carlist_addcar(node *carlist, node *elem)
 {
-    node *nleft, *nright, *tmp;
+    node *nleft, *nright;
     if((carlist->prev == NULL) && (carlist->next == NULL)) {
         carlist_add_left(carlist, NULL, elem);
         carlist_add_right(carlist, NULL, elem);
@@ -157,13 +145,18 @@ void carlist_addcar(node *carlist, node *elem)
         carlist_add_right(carlist, nleft, elem);
         return;
     }
-    tmp = carlist_search_seller(nleft, nright, elem->seller_fd);
-    if(tmp == NULL){
-        carlist_add_left(carlist, nleft, elem);
-    } else {
-        tmp->num += elem->num;
-        node_free(elem);
+    /*search seller*/
+    for(; nleft != nright->next; nleft = nleft->next) {
+        if(nleft->seller_fd > elem->seller_fd){
+            carlist_add_left(carlist, nleft, elem);
+            return;
+        } else if(nleft->seller_fd == elem->seller_fd) {
+            nleft->num += elem->num;
+            node_free(elem);
+            return;
+        }
     }
+    carlist_add_left(carlist, nleft, elem);
 }
 
 
@@ -205,7 +198,7 @@ void carlist_print(node carlist)
     node *tmp;
     printf("==========================================\n");
     for(tmp = carlist.prev; tmp != NULL; tmp = tmp->next) {
-        printf("brand:%s|num:%d|fd:%d\n", tmp->brand, tmp->num, tmp->seller_fd);
+        printf("brand:%-6s|num:%2d|fd:%2d\n", tmp->brand, tmp->num, tmp->seller_fd);
     }
 }
 
