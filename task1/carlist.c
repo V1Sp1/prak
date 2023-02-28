@@ -9,7 +9,8 @@
  * if nright==NULL str is after nleft
  * if (nleft!=NULL)&&(nright!=NULL) str is between nleft and nright
  * else error ???*/
-static void carlist_search(node *left, node *right, char *str, node **nleft, node **nright)
+static void carlist_search(struct node *left, struct node *right, const char *str,
+        struct node **nleft, struct node **nright)
 {
     int pos;
     char cur, tmp;
@@ -55,9 +56,10 @@ static void carlist_search(node *left, node *right, char *str, node **nleft, nod
     }
 }
 
-node *node_init(const char *brand, int num, unsigned long seller_ip, unsigned short seller_port, int seller_fd)
+struct node *node_init(const char *brand, int num,
+        unsigned long seller_ip, unsigned short seller_port, int seller_fd)
 {
-    node *tmp = malloc(sizeof(node));
+    struct node *tmp = malloc(sizeof(struct node));
     if(brand != NULL) {
         int len = strlen(brand) + 1;
         tmp->brand = malloc(sizeof(char) * len);
@@ -74,7 +76,7 @@ node *node_init(const char *brand, int num, unsigned long seller_ip, unsigned sh
     return tmp;
 }
 
-void node_free(node *current)
+void node_free(struct node *current)
 {
     if(current->brand != NULL) {
         free(current->brand);
@@ -84,7 +86,7 @@ void node_free(node *current)
 
 /* add car to the left of current
  * if current is NULL add to the left end*/
-void carlist_add_left(node *carlist, node *current, node *elem)
+static void carlist_add_left(struct node *carlist, struct node *current, struct node *elem)
 {
     if(current == NULL) {
         current = carlist->prev;
@@ -107,7 +109,7 @@ void carlist_add_left(node *carlist, node *current, node *elem)
 
 /* add car to the right of current
  * if current is NULL add to the right end*/
-static void carlist_add_right(node *carlist, node *current, node *elem)
+static void carlist_add_right(struct node *carlist, struct node *current, struct node *elem)
 {
     if(current == NULL) {
         current = carlist->next;
@@ -128,9 +130,9 @@ static void carlist_add_right(node *carlist, node *current, node *elem)
     current->next = elem;
 }
 
-void carlist_addcar(node *carlist, node *elem)
+void carlist_addcar(struct node *carlist, struct node *elem)
 {
-    node *nleft, *nright;
+    struct node *nleft, *nright;
     if((carlist->prev == NULL) && (carlist->next == NULL)) {
         carlist_add_left(carlist, NULL, elem);
         carlist_add_right(carlist, NULL, elem);
@@ -161,7 +163,7 @@ void carlist_addcar(node *carlist, node *elem)
 
 
 /*don't free current*/
-void rm_from_carlist(node *carlist, node *current)
+static void rm_from_carlist(struct node *carlist, struct node *current)
 {
     if(current->prev == NULL) {
         carlist->prev = current->next;
@@ -175,9 +177,9 @@ void rm_from_carlist(node *carlist, node *current)
     }
 }
 
-node *carlist_sell_car(node *carlist, char *brand)
+struct node *carlist_sell_car(struct node *carlist, const char *brand)
 {
-    node *nleft, *nright;
+    struct node *nleft, *nright;
     if((carlist->prev == NULL) && (carlist->next == NULL)) {
         return NULL;
     }
@@ -193,9 +195,10 @@ node *carlist_sell_car(node *carlist, char *brand)
     }
 }
 
-void carlist_print(node carlist)
+/*replace by carlist_save*/
+void carlist_print(struct node carlist)
 {
-    node *tmp;
+    struct node *tmp;
     printf("==========================================\n");
     for(tmp = carlist.prev; tmp != NULL; tmp = tmp->next) {
         printf("brand:%-6s|num:%2d|fd:%2d\n", tmp->brand, tmp->num, tmp->seller_fd);
@@ -203,9 +206,9 @@ void carlist_print(node carlist)
 }
 
 /*free carlist, don't free cr*/
-void carlist_free(node *carlist)
+void carlist_free(struct node *carlist)
 {
-    node *tmp;
+    struct node *tmp;
     for(tmp = carlist->prev; tmp != NULL; tmp = carlist->prev) {
         carlist->prev = tmp->next;
         node_free(tmp);
