@@ -6,7 +6,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <errno.h>
 
+#include "sessaddr.h"
 #include "session.h"
 #include "carlist.h"
 
@@ -24,7 +26,7 @@ static const char help_msg[] =
     "HELP\thelp info\n"
     "BUY <mark>\tbuy car by the <mark>\n"
     "SELL <mark>\tsell car <mark>\n"
-    /*"LIST\t list all cars in dealership\n"*/;
+    "LIST\t list all cars in dealership\n";
 static const char incorrect_input_msg[] = 
     "Incorect input. Write \"HELP\" to see commands\n";
 static const char no_car_msg[] =
@@ -44,11 +46,14 @@ static const char long_line_msg[] =
     "Line is too long!!! Goodbye...\n";
 
 
-static int volatile working = 1;
+volatile static sig_atomic_t working = 1;
 
 static void sigint_hndlr(int sig)
 {
+    int save_errno = errno;
+    signal(SIGINT, sigint_hndlr);
     working = 0;
+    errno = save_errno;
 }
 
 
@@ -96,7 +101,7 @@ static int server_init(struct server_str *serv, int port, const char *fname)
     }
     serv->res = f;
 
-    serv->carlist = node_init(NULL, 0, 0, 0, 0);
+    serv->carlist = node_init(NULL, 0, NULL);
 
     serv->sess_array = malloc(sizeof(*serv->sess_array) * INIT_SESS_ARR_SIZE);
     serv->sess_array_size = INIT_SESS_ARR_SIZE;
@@ -111,6 +116,7 @@ static void server_accept_client(struct server_str *serv)
 {
     int sd, i;
     struct sockaddr_in addr;
+    struct sess_addr s_addr;
     socklen_t len = sizeof(addr);
     sd = accept(serv->ls, (struct sockaddr*) &addr, &len);
     if(sd == -1) {
@@ -129,14 +135,14 @@ static void server_accept_client(struct server_str *serv)
         }
         serv->sess_array_size = newlen;
     }
-
-    serv->sess_array[sd] = make_new_session(sd, &addr);
+    make_sess_addr(&s_addr, sd, &addr);
+    serv->sess_array[sd] = make_new_session(&s_addr);
 }
 
 static void server_remove_session(struct server_str *serv, int sd)
 {
     close(sd);
-    serv->sess_array[sd]->fd = -1;
+    serv->sess_array[sd]->from.fd = -1;
     free(serv->sess_array[sd]);
     serv->sess_array[sd] = NULL;
 }
@@ -154,13 +160,15 @@ static void server_free(struct server_str *serv)
     carlist_free(serv->carlist);
     node_free(serv->carlist);
     for(i = 0; i < serv->sess_array_size; i++) {
-        session_send_str(serv->sess_array[i], "The server is stoped\n");
-        server_close_session(serv, i);
+        if(serv->sess_array[i] != NULL) {
+            session_send_str(serv->sess_array[i], "The server is stoped\n");
+            server_close_session(serv, i);
+        }
     }
     free(serv->sess_array);
 }
 
-static void serv_send_str_all(struct server_str *serv, const char *str)
+static void server_send_str_all(struct server_str *serv, const char *str)
 {
     int i;
     for(i = 0; i < serv->sess_array_size; i++) {
@@ -176,6 +184,8 @@ static void serv_send_str_all(struct server_str *serv, const char *str)
 
 static void session_handl_step(struct server_str *serv, int sd, char *line)
 {
+    char *buf;
+    struct sess_addr *s_addr;
     struct session *sess = serv->sess_array[sd];
     struct node *carlist = serv->carlist, *tmp;
     switch(sess->state) {
@@ -183,28 +193,29 @@ static void session_handl_step(struct server_str *serv, int sd, char *line)
             session_send_str(sess, help_msg);
             break;
         case sess_buy:
-            tmp = carlist_sell_car(carlist, line);
-            if(tmp == NULL) {
+            s_addr = carlist_sell_car(carlist, line);
+            if(s_addr == NULL) {
                 session_send_str(sess, no_car_msg);
             } else {
-                free(line);
-                line = malloc(sizeof(car_brand_msg)-1+strlen(tmp->brand)+sizeof(was_sold_msg)-1+1 + 1);
-                sprintf(line, "%s%s%s\n", car_brand_msg, tmp->brand, was_sold_msg);
-                serv_send_str_all(serv, line);
+                buf = malloc(sizeof(car_brand_msg)-1+strlen(line)+sizeof(was_sold_msg)-1+1 + 1);
+                sprintf(buf, "%s%s%s\n", car_brand_msg, line, was_sold_msg);
+                server_send_str_all(serv, buf);
                 session_send_str(serv->sess_array[sd], congr_buy_msg);
-                session_send_str(serv->sess_array[tmp->seller_fd], congr_sell_msg);
+                session_send_str(serv->sess_array[s_addr->fd], congr_sell_msg);
+                free(s_addr);
+                free(buf);
                 /*write line to log file*/
             }
             sess->state = sess_start;
             break;
         case sess_sell:
             /*check correctness line*/
-            tmp = node_init(line, 1, sess->from_ip, sess->from_port, sess->fd);
-            free(line);
-            line = malloc(sizeof(car_brand_msg)-1+strlen(tmp->brand)+sizeof(was_put_up_msg)-1+1 + 1);
-            sprintf(line, "%s%s%s\n", car_brand_msg, tmp->brand, was_put_up_msg);
-            serv_send_str_all(serv, line);
+            tmp = node_init(line, 1, &sess->from);
+            buf = malloc(sizeof(car_brand_msg)-1+strlen(line)+sizeof(was_put_up_msg)-1+1 + 1);
+            sprintf(buf, "%s%s%s\n", car_brand_msg, line, was_put_up_msg);
+            server_send_str_all(serv, buf);
             carlist_addcar(carlist, tmp); /*warning: we no longer own tmp*/
+            free(buf);
             /*write line to log file*/
             sess->state = sess_start;
             break;
@@ -246,6 +257,9 @@ static int server_go(struct server_str *serv)
         }
         sr = select(maxfd+1, &readfds, NULL, NULL, NULL);
         if(sr == -1) {
+            if(errno == EINTR) {
+                continue;
+            }
             perror("select");
             return 4;
         }

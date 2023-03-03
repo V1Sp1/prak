@@ -26,15 +26,13 @@ void session_send_str(struct session *sess, const char *str)
     if((sess == NULL) || (str == NULL)) {
         return;
     }
-    write(sess->fd, str, strlen(str));
+    write(sess->from.fd, str, strlen(str));
 }
 
-struct session *make_new_session(int fd, struct sockaddr_in *from)
+struct session *make_new_session(struct sess_addr *from)
 {
     struct session *sess = malloc(sizeof(*sess));
-    sess->fd = fd;
-    sess->from_ip = ntohl(from->sin_addr.s_addr);
-    sess->from_port = ntohs(from->sin_port);
+    sess->from = *from;
     sess->buf_used = 0;
     sess->state = sess_start;
     return sess;
@@ -88,7 +86,7 @@ char *session_form_line(struct session *sess)
 int session_do_read(struct session *sess)
 {
     int rc, bufp = sess->buf_used;
-    rc = read(sess->fd, sess->buf + bufp, INBUFSIZE - bufp);
+    rc = read(sess->from.fd, sess->buf + bufp, INBUFSIZE - bufp);
     if(rc <= 0) {
         sess->state = sess_error;
         return 0;   /* this means "don't continue" for the caller */

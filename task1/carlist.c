@@ -56,8 +56,7 @@ static void carlist_search(struct node *left, struct node *right, const char *st
     }
 }
 
-struct node *node_init(const char *brand, int num,
-        unsigned long seller_ip, unsigned short seller_port, int seller_fd)
+struct node *node_init(const char *brand, int num, struct sess_addr *seller)
 {
     struct node *tmp = malloc(sizeof(struct node));
     if(brand != NULL) {
@@ -68,9 +67,9 @@ struct node *node_init(const char *brand, int num,
         tmp->brand = NULL;
     }
     tmp->num = num;
-    tmp->seller_ip = seller_ip;
-    tmp->seller_port = seller_port;
-    tmp->seller_fd = seller_fd;
+    if(seller != NULL) {
+        tmp->seller = *seller;
+    }
     tmp->prev = NULL;
     tmp->next = NULL;
     return tmp;
@@ -149,10 +148,10 @@ void carlist_addcar(struct node *carlist, struct node *elem)
     }
     /*search seller*/
     for(; nleft != nright->next; nleft = nleft->next) {
-        if(nleft->seller_fd > elem->seller_fd){
+        if(nleft->seller.fd > elem->seller.fd){
             carlist_add_left(carlist, nleft, elem);
             return;
-        } else if(nleft->seller_fd == elem->seller_fd) {
+        } else if(nleft->seller.fd == elem->seller.fd) {
             nleft->num += elem->num;
             node_free(elem);
             return;
@@ -177,7 +176,7 @@ static void rm_from_carlist(struct node *carlist, struct node *current)
     }
 }
 
-struct node *carlist_sell_car(struct node *carlist, const char *brand)
+struct sess_addr *carlist_sell_car(struct node *carlist, const char *brand)
 {
     struct node *nleft, *nright;
     if((carlist->prev == NULL) && (carlist->next == NULL)) {
@@ -187,11 +186,14 @@ struct node *carlist_sell_car(struct node *carlist, const char *brand)
     if((nleft == NULL) || (nright == NULL)) {
         return NULL;
     } else {
+        struct sess_addr *sel = malloc(sizeof(struct sess_addr));
+        *sel = nleft->seller;
         --nleft->num;
         if(nleft->num <= 0) {
             rm_from_carlist(carlist, nleft);
+            node_free(nleft);
         }
-        return nleft;
+        return sel;
     }
 }
 
@@ -201,7 +203,7 @@ void carlist_print(struct node carlist)
     struct node *tmp;
     printf("==========================================\n");
     for(tmp = carlist.prev; tmp != NULL; tmp = tmp->next) {
-        printf("brand:%-6s|num:%2d|fd:%2d\n", tmp->brand, tmp->num, tmp->seller_fd);
+        printf("brand:%-6s|num:%2d|fd:%2d\n", tmp->brand, tmp->num, tmp->seller.fd);
     }
 }
 

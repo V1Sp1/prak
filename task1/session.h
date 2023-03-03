@@ -1,7 +1,7 @@
 #ifndef SESSION_H_CAR
 #define SESSION_H_CAR
 
-#include <netinet/in.h>
+#include "sessaddr.h"
 
 #ifndef INBUFSIZE
 #define INBUFSIZE 1024
@@ -19,9 +19,7 @@ enum sess_states {
 };
 
 struct session {
-    int fd;
-    unsigned long from_ip;
-    unsigned short from_port;
+    struct sess_addr from;
     char buf[INBUFSIZE];
     unsigned buf_used;
     enum sess_states state;
@@ -31,7 +29,7 @@ void session_check_cmd(struct session *sess, char *line);
 
 void session_send_str(struct session *sess, const char *str);
 
-struct session *make_new_session(int fd, struct sockaddr_in *from);
+struct session *make_new_session(struct sess_addr *from);
 
 char *session_form_line(struct session *sess);
 
