@@ -12,26 +12,11 @@
 #include "session.h"
 #include "carlist.h"
 
-#ifndef LISTEN_QLEN
-#define LISTEN_QLEN 32
-#endif
+#include "msgs.h"
 
-#ifndef INIT_SESS_ARR_SIZE
-#define INIT_SESS_ARR_SIZE 32
-#endif
-
-static const char help_msg[] = 
-    "You are in car dealership\n"
-    "Commands:\n"
-    "HELP\thelp info\n"
-    "BUY <mark>\tbuy car by the <mark>\n"
-    "SELL <mark>\tsell car <mark>\n"
-    "LIST\t list all cars in dealership\n";
-static const char incorrect_input_msg[] = 
-    "Incorect input. Write \"HELP\" to see commands\n";
 static const char no_car_msg[] =
     "Sorry, now there is no such car in our dealership.\n"
-    "Write LIST to see all cars\n";
+    /*"Write LIST to see all cars\n"*/;
 static const char car_brand_msg[] =
     "The car with brand ";
 static const char was_sold_msg[] = 
@@ -42,8 +27,14 @@ static const char congr_buy_msg[] =
     "Congratulations on your successful purchase!!!\n";
 static const char congr_sell_msg[] = 
     "Congratulations on your successful sale!!!\n";
-static const char long_line_msg[] = 
-    "Line is too long!!! Goodbye...\n";
+
+#ifndef LISTEN_QLEN
+#define LISTEN_QLEN 32
+#endif
+
+#ifndef INIT_SESS_ARR_SIZE
+#define INIT_SESS_ARR_SIZE 32
+#endif
 
 
 volatile static sig_atomic_t working = 1;
@@ -60,9 +51,9 @@ static void sigint_hndlr(int sig)
 
 
 struct server_str {
-    int ls;
-    FILE *res;
-    struct node *carlist;
+    int ls;                     /*listen socket*/
+    FILE *res;                  /*TODO: log file*/
+    struct node *carlist;       /*list of cars*/
     struct session **sess_array;
     int sess_array_size;
 };
@@ -139,7 +130,7 @@ static void server_accept_client(struct server_str *serv)
     serv->sess_array[sd] = make_new_session(&s_addr);
 }
 
-static void server_remove_session(struct server_str *serv, int sd)
+static void server_close_session(struct server_str *serv, int sd)
 {
     close(sd);
     serv->sess_array[sd]->from.fd = -1;
@@ -147,12 +138,7 @@ static void server_remove_session(struct server_str *serv, int sd)
     serv->sess_array[sd] = NULL;
 }
 
-static void server_close_session(struct server_str *serv, int sd)
-{
-    server_remove_session(serv, sd);
-}
-
-static void server_free(struct server_str *serv)
+static void server_off(struct server_str *serv)
 {
     int i;
     close(serv->ls);
@@ -171,7 +157,7 @@ static void server_free(struct server_str *serv)
 static void server_send_str_all(struct server_str *serv, const char *str)
 {
     int i;
-    for(i = 0; i < serv->sess_array_size; i++) {
+    for(i = 0; i < serv->sess_array_size; ++i) {
         if(serv->sess_array[i] != NULL) {
             session_send_str(serv->sess_array[i], str);
         }
@@ -191,6 +177,7 @@ static void session_handl_step(struct server_str *serv, int sd, char *line)
     switch(sess->state) {
         case sess_help:
             session_send_str(sess, help_msg);
+            sess->state = sess_start;
             break;
         case sess_buy:
             s_addr = carlist_sell_car(carlist, line);
@@ -266,7 +253,7 @@ static int server_go(struct server_str *serv)
         if(FD_ISSET(serv->ls, &readfds)) {
             server_accept_client(serv);
         }
-        for(i = 0; i < serv->sess_array_size; i++) {
+        for(i = 0; i < serv->sess_array_size; ++i) {
             if(serv->sess_array[i] && FD_ISSET(i, &readfds)) {
                 sess = serv->sess_array[i];
                 ssr = session_do_read(sess);
@@ -274,7 +261,7 @@ static int server_go(struct server_str *serv)
                     server_close_session(serv, i);
                     continue;
                 }
-                line = session_form_line(sess);
+                line = session_form_line(sess, 1);
                 if(line != NULL) {
                     session_handl_step(serv, i, line);
                 }
@@ -285,7 +272,7 @@ static int server_go(struct server_str *serv)
             }
         }
     }
-    server_free(serv);
+    server_off(serv);
     return 0;
 }
 

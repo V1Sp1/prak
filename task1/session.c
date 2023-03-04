@@ -38,7 +38,7 @@ struct session *make_new_session(struct sess_addr *from)
     return sess;
 }
 
-char *session_form_line(struct session *sess)
+char *session_form_line(struct session *sess, int modify_str)
 {
     char tmp, nl = '\0';
     int i, pos = -1;
@@ -67,7 +67,7 @@ char *session_form_line(struct session *sess)
         return NULL;
     }
     session_check_cmd(sess, sess->buf);
-    if(sess->state != sess_wrong) {
+    if(modify_str && (sess->state != sess_wrong)) {
         i = strlen(cmds[sess->state]);
     } else {
         i = 0;
@@ -75,7 +75,7 @@ char *session_form_line(struct session *sess)
     line = malloc(pos-i+1);
     memcpy(line, sess->buf+i, pos-i);
     line[pos-i] = 0;
-    if((line[pos-i-1] == '\r') || (line[pos-i-1] == '\n')) {
+    if((pos > i) && ((line[pos-i-1] == '\r') || (line[pos-i-1] == '\n'))) {
         line[pos-i-1] = 0;
     }
     sess->buf_used -= (pos+1);

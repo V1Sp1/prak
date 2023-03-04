@@ -31,7 +31,7 @@ void session_send_str(struct session *sess, const char *str);
 
 struct session *make_new_session(struct sess_addr *from);
 
-char *session_form_line(struct session *sess);
+char *session_form_line(struct session *sess, int modify_str);
 
 int session_do_read(struct session *sess);
 
