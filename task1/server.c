@@ -6,7 +6,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <errno.h>
+#include <time.h>
 
 #include "sessaddr.h"
 #include "session.h"
@@ -52,7 +54,7 @@ static void sigint_hndlr(int sig)
 
 struct server_str {
     int ls;                     /*listen socket*/
-    FILE *res;                  /*TODO: log file*/
+    FILE *log;                  /*TODO: log file*/
     struct node *carlist;       /*list of cars*/
     struct session **sess_array;
     int sess_array_size;
@@ -84,13 +86,13 @@ static int server_init(struct server_str *serv, int port, const char *fname)
 
     serv->ls = sock;
 
-    f = fopen(fname, "wb");
+    f = fopen(fname, "a");
     if(!f) {
         perror(fname);
         close(sock);
         return 0;
     }
-    serv->res = f;
+    serv->log = f;
 
     serv->carlist = node_init(NULL, 0, NULL);
 
@@ -142,7 +144,7 @@ static void server_off(struct server_str *serv)
 {
     int i;
     close(serv->ls);
-    fclose(serv->res);
+    fclose(serv->log);
     carlist_free(serv->carlist);
     node_free(serv->carlist);
     for(i = 0; i < serv->sess_array_size; i++) {
@@ -167,6 +169,14 @@ static void server_send_str_all(struct server_str *serv, const char *str)
 
 /*TODO: add commit function*/
 
+static void server_commit(struct server_str *serv, int sd, const char *str)
+{
+    time_t times = time(NULL);
+    struct in_addr addr;
+    addr.s_addr = htonl(serv->sess_array[sd]->from.ip);
+    fprintf(serv->log, "%sip %s|port %ld | %s", ctime(&times), inet_ntoa(addr), serv->sess_array[sd]->from.port, str);
+    fflush(serv->log);
+}
 
 static void session_handl_step(struct server_str *serv, int sd, char *line)
 {
@@ -189,21 +199,20 @@ static void session_handl_step(struct server_str *serv, int sd, char *line)
                 server_send_str_all(serv, buf);
                 session_send_str(serv->sess_array[sd], congr_buy_msg);
                 session_send_str(serv->sess_array[s_addr->fd], congr_sell_msg);
+                server_commit(serv, sd, buf);
                 free(s_addr);
                 free(buf);
-                /*write line to log file*/
             }
             sess->state = sess_start;
             break;
         case sess_sell:
-            /*check correctness line*/
             tmp = node_init(line, 1, &sess->from);
             buf = malloc(sizeof(car_brand_msg)-1+strlen(line)+sizeof(was_put_up_msg)-1+1 + 1);
             sprintf(buf, "%s%s%s\n", car_brand_msg, line, was_put_up_msg);
             server_send_str_all(serv, buf);
             carlist_addcar(carlist, tmp); /*warning: we no longer own tmp*/
+            server_commit(serv, sd, buf);
             free(buf);
-            /*write line to log file*/
             sess->state = sess_start;
             break;
         case sess_list:
