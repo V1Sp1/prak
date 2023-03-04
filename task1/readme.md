@@ -20,7 +20,9 @@ to stop server send him SIGINT
 	$ ./client <server_ip> <server_port>
 ```
 write HELP in client to receive HELP msg
+
 to stop client send him SIGINT
+
 **Note**: you also can use telnet to connect to server:
 ```bash
 	$ telnet <server_ip> <server_port>
