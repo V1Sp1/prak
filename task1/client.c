@@ -125,8 +125,7 @@ static int client_go(struct client_str *cli)
                     working = 0;
                     break;
                 }
-                line = session_form_line(sess, 0);
-                if(line != NULL) {
+                while((line = session_form_line(sess, 0)) != NULL){
                     client_handl_step(cli, line, i);
                 }
                 sr = session_check_correctness(sess, i == 0 ? long_line_msg : NULL);
