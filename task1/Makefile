@@ -1,10 +1,9 @@
 CC = gcc
-CFLAGS = -Wall -g
+CFLAGS = -Wall # -g
 VFLAGS = --leak-check=full --show-leak-kinds=all
 SERVIP = 127.0.0.1
 SERVPORT = 7777
 SERVLOG = a.log
-
 
 all: server client
 
@@ -25,6 +24,12 @@ client: client.c session.o sessaddr.o
 
 clean:
 	rm -f *.o server client $(SERVLOG)
+
+runserver:
+	./server $(SERVPORT) $(SERVLOG)
+
+runclient:
+	./client $(SERVIP) $(SERVPORT)
 
 valserver:
 	valgrind $(VFLAGS) ./server $(SERVPORT) $(SERVLOG)
